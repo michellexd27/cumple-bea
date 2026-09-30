@@ -110,6 +110,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 .titulo{font-family:var(--serif);font-weight:400;font-size:clamp(36px,10vw,48px);line-height:1.02;margin:4px 0 0;text-wrap:balance}
 .subraya{background:linear-gradient(var(--rosa),var(--rosa)) no-repeat 0 90%/0% 38%;transition:background-size .9s .5s ease-out}
 .visible .subraya{background-size:100% 38%}
+.bailarin{position:absolute;top:-8px;right:-16px;width:min(56vw,220px);height:auto;pointer-events:none;z-index:0}
+#lista .antetitulo,#lista .titulo{position:relative;z-index:1;max-width:64%}
 #lista .centro{gap:16px;padding:14px 0 4px}
 .escena{perspective:900px}
 #tarjeta{background:#fff;border:1px solid #E3DECF;border-radius:4px;padding:28px 22px 22px;position:relative;min-height:clamp(200px,32svh,300px);display:flex;flex-direction:column;justify-content:center;transform:rotate(-1.2deg);box-shadow:0 8px 16px var(--sombra);cursor:pointer}
@@ -313,6 +315,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 <section class="pagina" id="lista">
   <div class="flotantes" data-n="7" data-tipos="corazon,aguacate,corazon"></div>
   <div class="contenido" style="padding-left:26px">
+    <img class="bailarin" src="aguacate-cumple.webp" alt="" aria-hidden="true" width="420" height="329" decoding="async">
     <p class="antetitulo entra">(la lista es más larga, pero no cupo)</p>
     <h1 class="titulo entra" style="--del:.1s">Cosas de Bea que <span class="subraya">quiero</span></h1>
 

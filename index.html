@@ -198,13 +198,13 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 #constelacion .num{fill:rgba(253,251,245,.62);font-family:var(--maq);font-size:8.5px;pointer-events:none}
 #constelacion .num.unido{fill:rgba(231,239,176,.35)}
 #constelacion .linea{stroke:var(--pulpa);stroke-width:2;stroke-linecap:round;fill:none;animation:traza .3s ease-out both}
-#constelacion .trazo-suave{fill:none;stroke:var(--rosa);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(242,181,198,.9))}
+#constelacion .trazo-suave{fill:none;stroke:var(--rosa);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#constelacion .trazo-brillo{fill:none;stroke:var(--rosa);stroke-width:9;stroke-opacity:.28;stroke-linecap:round;stroke-linejoin:round}
 #constelacion .punto-i{fill:var(--crema);opacity:.8}
-#constelacion.completa .punto-i{fill:var(--rosa);opacity:1;filter:drop-shadow(0 0 3px rgba(242,181,198,.9));transition:fill .6s 2s}
+#constelacion.completa .punto-i{fill:var(--rosa);opacity:1;transition:fill .5s 1.3s}
 #constelacion.completa .linea{opacity:0;transition:opacity 1.2s .8s}
 #constelacion.completa .punto{opacity:.35;transition:opacity 1s .8s}
 #constelacion.completa .num{opacity:0;transition:opacity .8s}
-#constelacion.completa{animation:latido 1.4s ease-in-out 2}
 .ayuda{background:none;border:1px dashed rgba(231,239,176,.6);color:var(--pulpa);border-radius:999px;padding:4px 10px}
 #cartaFinal{background:var(--crema);color:var(--verde-tinta);border-radius:4px;padding:22px 22px 18px;font-size:clamp(23px,6vw,27px);line-height:1.22;transform:rotate(-.8deg);box-shadow:0 10px 22px rgba(0,0,0,.3);animation:aparece .8s both}
 #cartaFinal p{margin:0 0 8px}
@@ -550,7 +550,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
   var esperandoVela=true; // hasta que se apague: no se puede bajar y la música espera
   var musica=(function(){
     var ctx=null, master=null, timer=null, t0=0, idx=0, sonando=false, audio=null, porMic=false, oculta=false;
-    var quiere=leer("bea-musica",true);
+    var quiere=true; // cada visita empieza con música (no se recuerda la pausa)
     var btn=$("btnMusica");
     var B=60/104;
     // «Cumpleaños feliz» (dominio público): [nota MIDI, tiempos, bajo opcional]
@@ -627,7 +627,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 
     function viva(){
       if(YOUTUBE) return !!(yt && ytListo && yt.getPlayerState && yt.getPlayerState()===1);
-      return CANCION ? (audio && !audio.paused) : (ctx && ctx.state==="running");
+      return CANCION ? (audio && !audio.paused && !audio.muted) : (ctx && ctx.state==="running");
     }
     function play(){
       if(YOUTUBE){
@@ -704,10 +704,11 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
       if(desbloqueado || sonando || YOUTUBE) return;
       desbloqueado=true;
       if(CANCION){
+        // Queda sonando EN SILENCIO desde este toque; al apagar la vela solo
+        // se le quita el silencio (así el teléfono no la puede bloquear).
         asegurarAudio(); audio.muted=true;
         var p=audio.play();
-        if(p&&p.then) p.then(function(){ if(!sonando){ audio.pause(); audio.currentTime=0; } audio.muted=false; },
-                             function(){ audio.muted=false; desbloqueado=false; });
+        if(p&&p.then) p.then(null,function(){ desbloqueado=false; });
       } else if(ctx || crear()){
         var r=ctx.resume();
         if(r&&r.then) r.then(function(){ if(!sonando) ctx.suspend(); });
@@ -720,7 +721,13 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
       // Pausa mientras escucha el micrófono (que la música no "sople")
       silenciar:function(){ porMic=true; desbloquear(); if(sonando) stop(); },
       // Al apagar la vela: ¡que suene!
-      festejo:function(){ porMic=false; if(quiere && !viva()) play(); },
+      festejo:function(){
+        porMic=false; quiere=true;
+        if(CANCION && audio && !audio.paused && audio.muted){
+          audio.currentTime=0; audio.muted=false; sonando=true; pintar(); return;
+        }
+        if(!viva()) play();
+      },
       ding:function(){
         if(!ctx || !sonando || CANCION) return;
         var t=ctx.currentTime+0.02;

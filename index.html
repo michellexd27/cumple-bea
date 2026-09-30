@@ -146,6 +146,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 .premio .etiqueta{color:var(--verde);font-size:11px;text-transform:uppercase}
 .premio .texto{font-size:clamp(19px,5.2vw,23px);line-height:1.08}
 .premio .icono svg{display:block;width:30px;height:30px}
+.premio .icono:empty{display:none}
 .letra-chica{display:block;font-family:var(--maq);font-size:10.5px;line-height:1.35;margin-top:5px;color:var(--vino)}
 .enfasis{display:inline-block;color:var(--rosa-fuerte);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-decoration:underline wavy;text-underline-offset:3px}
 .vale.revelado .enfasis{animation:tiembla .45s .9s 3 both}
@@ -161,6 +162,33 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 .pie{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding-top:20px;padding-right:56px;color:var(--verde)}
 @keyframes sello{0%{opacity:0;transform:rotate(-8deg) scale(2.4)}100%{opacity:1;transform:rotate(-8deg) scale(1)}}
 @keyframes reflejo{0%,55%{transform:translateX(-110%)}100%{transform:translateX(110%)}}
+
+/* ---------- 4 · UNE LAS ESTRELLAS ---------- */
+#estrellas{background:radial-gradient(120% 80% at 50% 0%,#3E5A2A 0%,#2A3F1E 55%,#1F2F16 100%);color:var(--crema)}
+#estrellas .intro{color:var(--crema)}
+#estrellas .centro{gap:14px;padding-top:14px}
+#estrellas .fila-vales{color:var(--pulpa)}
+.cielo{position:relative;border-radius:14px;background:rgba(0,0,0,.18);box-shadow:inset 0 0 0 1px rgba(253,251,245,.08)}
+#constelacion{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
+#constelacion .fondo{fill:var(--crema);animation:brilla-cielo 3s ease-in-out infinite}
+#constelacion .punto{fill:var(--crema);transition:fill .3s,r .3s}
+#constelacion .punto.unido{fill:var(--pulpa)}
+#constelacion .punto.sig{fill:#FCE38A}
+#constelacion .num{fill:rgba(253,251,245,.62);font-family:var(--maq);font-size:9px;pointer-events:none}
+#constelacion .num.unido{fill:rgba(231,239,176,.35)}
+#constelacion .linea{stroke:var(--pulpa);stroke-width:2;stroke-linecap:round;fill:none;animation:traza .3s ease-out both}
+#constelacion.completa .linea{stroke:var(--rosa);filter:drop-shadow(0 0 3px rgba(242,181,198,.9));transition:stroke .6s}
+#constelacion.completa .num{opacity:0;transition:opacity .8s}
+#constelacion.completa{animation:latido 1.4s ease-in-out 2}
+.ayuda{background:none;border:1px dashed rgba(231,239,176,.6);color:var(--pulpa);border-radius:999px;padding:4px 10px}
+#cartaFinal{background:var(--crema);color:var(--verde-tinta);border-radius:4px;padding:22px 22px 18px;font-size:clamp(23px,6vw,27px);line-height:1.22;transform:rotate(-.8deg);box-shadow:0 10px 22px rgba(0,0,0,.3);animation:aparece .8s both}
+#cartaFinal p{margin:0 0 8px}
+#cartaFinal b{font-family:var(--serif);font-weight:400;color:var(--rosa-fuerte);font-size:1.15em}
+#cartaFinal .firma{text-align:right;margin:4px 0 0}
+#estrellas .pie{color:var(--pulpa)}
+@keyframes brilla-cielo{0%,100%{opacity:.25}50%{opacity:.8}}
+@keyframes traza{from{stroke-dashoffset:var(--l)}to{stroke-dashoffset:0}}
+@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 
 /* ---------- botón de música ---------- */
 #btnMusica{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;width:50px;height:50px;border-radius:50%;border:none;background:var(--crema);box-shadow:0 4px 0 #d9d2bf,0 6px 14px var(--sombra);display:flex;align-items:center;justify-content:center;gap:3px;padding:0}
@@ -292,6 +320,29 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
       <div id="finalVales" hidden></div>
     </div>
 
+    <a class="siguiente" href="#estrellas">falta una cosa <span class="flecha">↓</span></a>
+  </div>
+</section>
+
+<!-- 4 · UNE LAS ESTRELLAS -->
+<section class="pagina" id="estrellas">
+  <div class="contenido">
+    <div class="entra"><span class="cinta" style="background:var(--crema);color:var(--verde-tinta)">une las estrellas</span></div>
+    <p class="intro entra" style="--del:.1s">Toca las estrellas en orden, del 1 al <span id="totalEstrellas"></span>. También puedes arrastrar el dedo.</p>
+
+    <div class="centro">
+      <div class="cielo entra" style="--del:.2s">
+        <svg id="constelacion" viewBox="0 0 300 285" role="img" aria-label="Constelación para unir"></svg>
+      </div>
+      <div class="fila-vales entra" style="--del:.3s"><span class="maq" id="sigEstrella"></span><button class="maq ayuda" id="ayudaEstrellas" type="button" hidden>¿me ayudas?</button></div>
+      <div id="cartaFinal" hidden>
+        <p>Espero que te haya gustado todo.</p>
+        <p><b>Te quiero mucho.</b></p>
+        <p>Que hayas pasado un lindo cumpleaños y que los que faltan sean todavía mejores.</p>
+        <p class="firma">— Mich</p>
+      </div>
+    </div>
+
     <div class="pie maq"><span>Hecho con más amor que manos</span><span>Precio: 1 abrazo</span></div>
   </div>
 </section>
@@ -326,25 +377,28 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 
   // La lista continúa desde el 11. Escribe todas las que quieras.
   var LISTA = [
-    "Que te rías de tus chistes antes de terminar de contarlos.",
-    "Que tengas opiniones muy serias sobre el punto exacto de un aguacate.",
     "Que conviertas un día pesado de oficina en uno que se aguanta.",
     "Que siempre tengas un proyecto nuevo en la cabeza.",
     "Que escuches de verdad cuando alguien te cuenta algo.",
     "Que seas igual de tú en la oficina y fuera de ella.",
     "Que celebres los logros de los demás como si fueran tuyos.",
-    "Tu cara cuando algo te encanta.",
-    "Que en poquito tiempo te volviste mi persona.",
     "Que sepas cuándo hace falta un café y cuándo un abrazo.",
-    "Que tu risa se escuche desde el otro lado de la oficina.",
     "Que te atrevas a empezar cosas nuevas, como hornear.",
     "Que seas genia y no lo andes presumiendo.",
     "Que me digas la verdad aunque no sea la que quiero oír.",
-    "Que tus planes improvisados salgan mejor que los planeados.",
-    "Que me mandes cosas porque te acordaste de mí.",
     "Que no sueltes lo que te importa.",
-    "Los ratos de flapear que se alargan más de la cuenta.",
-    "Que hagas que los segundos valgan la pena.",
+    "Que aunque flapeamos, me sigues queriendo.",
+    "Que me hagas reír siempre, y siempre con vos, nunca tuyo.",
+    "Que seas la voz de la razón en todos los consejos, aun cuando yo soy la mayor.",
+    "Que seas la persona más empática: aunque no pienses igual o no estés de acuerdo, igual me apoyas y no me juzgas (la mayoría de las veces).",
+    "Que seas la persona vitamina más vitamina que puede existir y todo lo hagas positivo.",
+    "Que veas siempre lo bueno de la gente, hasta de la que no tiene mucho bueno. Eso dice más de ti que de los demás.",
+    "Creo que ya lo dije en algún lado, pero que tengas un corazón de oro y ayudes a todos.",
+    "Que me hayas hecho sentir querida y hayas sido muy buena amiga conmigo, a pesar de mis defectos.",
+    "Que siempre me hayas hecho sentir que puedo contar contigo sin esperar nada. Te quiero.",
+    "Que genuinamente seas tan divertida.",
+    "Que a pesar de que somos tan distintas, disfruto mucho todos los ratos juntas. Muchísimo.",
+    "Eres increíble x2.",
     "Que existas, así nomás."
   ];
 
@@ -354,10 +408,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
   var VALES = [
     { icono: "☕", texto: "un café a la hora que digas" },
     { icono: ROLL_CANELA, texto: "un roll de canela" },
-    { icono: "🤗", texto: "un abrazo gigante sin fecha de vencimiento" },
-    { icono: "✨", texto: 'lo que quieras*<span class="letra-chica">*dentro del alcance y del <b class="enfasis">presupuesto</b></span>', sello: "sujeto a presupuesto" }
+    { icono: "🤗", texto: "un abrazo cuando quieras" },
+    { icono: "", texto: 'lo que quieras*<span class="letra-chica">*dentro del alcance y del <b class="enfasis">presupuesto</b><br>(mi presupuesto)</span>', sello: "según presupuesto" }
   ];
-  var MENSAJE_VALES = "Todos tuyos. Para canjearlos: captura de pantalla y mándasela a Mich. Casi sin letra pequeña (ver vale Nº 4).";
+  var MENSAJE_VALES = "Todos tuyos. Casi sin letra pequeña.";
 
   /* ============================================================
      De aquí para abajo no hace falta tocar nada
@@ -872,6 +926,133 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
   }
   pintarCubiertas(true);
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ pintarCubiertas(false); altoCapas(); });
+
+  /* ---------- 4 · une las estrellas ---------- */
+  (function(){
+    var NS="http://www.w3.org/2000/svg", svg=$("constelacion");
+    // Letras en una cuadrícula de 36×50; "c" = trazo cerrado
+    var L={
+      T:[{p:[[0,0],[36,0]]},{p:[[18,0],[18,50]]}],
+      E:[{p:[[36,0],[0,0],[0,50],[36,50]]},{p:[[0,25],[28,25]]}],
+      Q:[{p:[[18,0],[36,12],[36,38],[18,50],[0,38],[0,12]],c:1},{p:[[25,40],[40,56]]}],
+      U:[{p:[[0,0],[0,40],[18,50],[36,40],[36,0]]}],
+      I:[{p:[[18,0],[18,50]]}],
+      R:[{p:[[0,50],[0,0],[28,0],[36,12],[28,25],[0,25]]},{p:[[14,25],[36,50]]}],
+      O:[{p:[[18,0],[36,12],[36,38],[18,50],[0,38],[0,12]],c:1}]
+    };
+    var FILAS=[{t:"TE",x:77,y:16},{t:"QUI",x:35,y:108},{t:"ERO",x:35,y:200}], ANCHO=62, ALTO=66, SEP=22;
+    var sx=ANCHO/36, sy=ALTO/50;
+    // Aleatorio con semilla fija: el orden sale igual siempre, pero mezclado
+    var semilla=26;
+    function azar(){ semilla|=0; semilla=semilla+0x6D2B79F5|0; var t=Math.imul(semilla^semilla>>>15,1|semilla); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
+
+    var trazos=[];
+    FILAS.forEach(function(f){
+      f.t.split("").forEach(function(ch,k){
+        var ox=f.x+k*(ANCHO+SEP);
+        L[ch].forEach(function(tr){
+          trazos.push({ c:!!tr.c, p:tr.p.map(function(q){ return [ox+q[0]*sx, f.y+q[1]*sy]; }) });
+        });
+      });
+    });
+    for(var i=trazos.length-1;i>0;i--){ var j=Math.floor(azar()*(i+1)), tmp=trazos[i]; trazos[i]=trazos[j]; trazos[j]=tmp; }
+    trazos.forEach(function(tr){ if(azar()<.5) tr.p.reverse(); });
+
+    var puntos=[];
+    trazos.forEach(function(tr,ti){
+      tr.p.forEach(function(q,k){ puntos.push({x:q[0], y:q[1], t:ti, primero:k===0, ultimo:k===tr.p.length-1}); });
+    });
+    var N=puntos.length;
+    $("totalEstrellas").textContent=N;
+
+    // Estrellitas de relleno para que no se adivine la forma
+    var fondo="";
+    for(var s=0;s<90;s++){
+      fondo+='<circle class="fondo" cx="'+(azar()*300).toFixed(1)+'" cy="'+(azar()*285).toFixed(1)+'" r="'+(0.5+azar()*1.1).toFixed(2)+'" style="animation-delay:-'+(azar()*3).toFixed(2)+'s"/>';
+    }
+    svg.innerHTML='<g>'+fondo+'</g><g id="lineas"></g><g id="puntos"></g>';
+    var gL=$("lineas"), gP=$("puntos"), circulos=[], etiquetas=[];
+    puntos.forEach(function(pt,n){
+      var c=document.createElementNS(NS,"circle");
+      c.setAttribute("cx",pt.x.toFixed(1)); c.setAttribute("cy",pt.y.toFixed(1)); c.setAttribute("r","3.2");
+      c.setAttribute("class","punto");
+      var t=document.createElementNS(NS,"text");
+      t.setAttribute("x",(pt.x+4.5).toFixed(1)); t.setAttribute("y",(pt.y-4).toFixed(1));
+      t.setAttribute("class","num"); t.textContent=String(n+1);
+      gP.appendChild(c); gP.appendChild(t);
+      circulos.push(c); etiquetas.push(t);
+    });
+
+    var hechos=0, completa=false;
+    function linea(a,b,animar){
+      var l=document.createElementNS(NS,"line"), len=Math.hypot(b.x-a.x,b.y-a.y).toFixed(1);
+      l.setAttribute("x1",a.x); l.setAttribute("y1",a.y); l.setAttribute("x2",b.x); l.setAttribute("y2",b.y);
+      l.setAttribute("class","linea");
+      if(animar){ l.style.strokeDasharray=len; l.style.setProperty("--l",len); } else l.style.animation="none";
+      gL.appendChild(l);
+    }
+    function pintarSig(){
+      circulos.forEach(function(c,n){ c.classList.toggle("sig", n===hechos && !completa); });
+      $("sigEstrella").textContent = completa ? "✦ completa" : "siguiente: "+(hechos+1)+" de "+N;
+    }
+    function unir(animar){
+      var pt=puntos[hechos];
+      if(hechos>0 && puntos[hechos-1].t===pt.t) linea(puntos[hechos-1],pt,animar);
+      if(pt.ultimo && trazos[pt.t].c){
+        var primero=puntos.filter(function(q){ return q.t===pt.t && q.primero; })[0];
+        linea(pt,primero,animar);
+      }
+      circulos[hechos].classList.add("unido"); etiquetas[hechos].classList.add("unido");
+      hechos++;
+      if(hechos===N) terminar(animar); else pintarSig();
+    }
+    function terminar(animar){
+      completa=true; pintarSig();
+      $("ayudaEstrellas").hidden=true;
+      guardar("bea-estrellas",true);
+      setTimeout(function(){ svg.classList.add("completa"); }, animar?300:0);
+      if(animar){
+        var c=centroDe(svg);
+        setTimeout(function(){ confeti(c[0],c[1],160,16); corazones(svg,12); vibrar([60,80,60,80,120]); musica.ding(); }, 500);
+      }
+      setTimeout(function(){
+        var carta=$("cartaFinal"); carta.hidden=false;
+        if(animar) carta.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});
+      }, animar?1800:0);
+    }
+
+    function aSvg(e){
+      var m=svg.getScreenCTM(); if(!m) return null;
+      var p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
+      return p.matrixTransform(m.inverse());
+    }
+    var apretado=false;
+    function probar(e){
+      if(completa) return;
+      var p=aSvg(e); if(!p) return;
+      var pt=puntos[hechos];
+      if(Math.hypot(p.x-pt.x,p.y-pt.y)<13){ unir(true); vibrar(8); }
+    }
+    svg.addEventListener("pointerdown",function(e){ apretado=true; try{ svg.setPointerCapture(e.pointerId); }catch(_){} probar(e); });
+    svg.addEventListener("pointermove",function(e){ if(apretado) probar(e); });
+    ["pointerup","pointercancel"].forEach(function(ev){ svg.addEventListener(ev,function(){ apretado=false; }); });
+
+    // Si tarda mucho, aparece un botón que termina de unirlas
+    var ayuda=$("ayudaEstrellas");
+    ayuda.addEventListener("click",function(){
+      ayuda.hidden=true;
+      var iv=setInterval(function(){ if(completa){ clearInterval(iv); return; } unir(true); }, 90);
+    });
+    if("IntersectionObserver" in window){
+      var io2=new IntersectionObserver(function(es){
+        if(es[0].isIntersecting){ io2.disconnect(); setTimeout(function(){ if(!completa) ayuda.hidden=false; }, 45000); }
+      },{threshold:.4});
+      io2.observe(svg);
+    }
+
+    if(leer("bea-estrellas",false)){ while(hechos<N) unir(false); }
+    else pintarSig();
+  })();
 
   var anchoPrevio=innerWidth;
   window.addEventListener("resize",function(){

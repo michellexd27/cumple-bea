@@ -163,6 +163,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 .flecha-arriba{width:clamp(28px,8vw,36px);display:block;animation:sube-flecha .7s ease-in-out infinite}
 .flecha-arriba svg{display:block;width:100%;height:auto}
 .sopla-grande{font-family:var(--serif);font-size:clamp(46px,13vw,60px);line-height:1;color:var(--vino);display:inline-block;animation:late .9s ease-in-out infinite}
+.pista-chica{font-size:16px;opacity:.75;margin-top:6px}
 .pista-grande{display:inline-block;font-size:clamp(23px,6.4vw,28px);font-weight:700;line-height:1.1;color:var(--vino);background:var(--crema);padding:6px 16px;border-radius:18px;animation:late 1s ease-in-out infinite}
 #cake-wrap.apuntada #cake{animation:aura 1.4s ease-in-out infinite}
 #bajarDeseo{visibility:hidden;opacity:0;display:flex;flex-direction:column;align-items:center;font-size:clamp(24px,6.6vw,28px);font-weight:700;color:var(--vino);transition:opacity .6s}
@@ -202,9 +203,10 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 #constelacion .trazo-brillo{fill:none;stroke:var(--rosa);stroke-width:9;stroke-opacity:.28;stroke-linecap:round;stroke-linejoin:round}
 #constelacion .punto-i{fill:var(--crema);opacity:.8}
 #constelacion.completa .punto-i{fill:var(--rosa);opacity:1;transition:fill .5s 1.3s}
-#constelacion.completa .linea{opacity:0;transition:opacity 1.2s .8s}
-#constelacion.completa .punto{opacity:.35;transition:opacity 1s .8s}
-#constelacion.completa .num{opacity:0;transition:opacity .8s}
+#constelacion.completa .linea{visibility:hidden;transition:visibility 0s 1.4s}
+#constelacion #puntos{transition:opacity .6s 1.4s}
+#constelacion.completa #puntos{opacity:.35}
+#constelacion.completa .num{visibility:hidden}
 .ayuda{background:none;border:1px dashed rgba(231,239,176,.6);color:var(--pulpa);border-radius:999px;padding:4px 10px}
 #cartaFinal{background:var(--crema);color:var(--verde-tinta);border-radius:4px;padding:22px 22px 18px;font-size:clamp(23px,6vw,27px);line-height:1.22;transform:rotate(-.8deg);box-shadow:0 10px 22px rgba(0,0,0,.3);animation:aparece .8s both}
 #cartaFinal p{margin:0 0 8px}
@@ -400,7 +402,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
   // Mensaje al apagar la vela
   var MENSAJE_VELA = {
     titulo: "Deseo pedido.",
-    texto: "La vida es un segundo, pero esta amistad es para largo.",
+    texto: "Yo te deseo muchos cumpleaños bonitos, llenos de cosas lindas como tú 😊",
     firma: "— Mich"
   };
 
@@ -767,11 +769,11 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
       '<p class="pista" id="pista"></p>';
     cakeWrap.classList.add("apuntada");
     var pista=$("pista");
-    var sinMic=function(){ pista.innerHTML='<span class="pista-grande">👆 TOCA LA VELA</span>'; pista.className="pista revela"; };
+    var sinMic=function(){ pista.textContent="(o toca la vela)"; pista.className="pista pista-chica revela"; };
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ sinMic(); return; }
     // Si en un rato no se ha apagado, otra señal grande
     setTimeout(function(){
-      if(!apagada && !pista.textContent){ pista.innerHTML='<span class="pista-grande">¿no se apaga? sopla más cerca<br>o 👆 TÓCALA</span>'; pista.className="pista revela"; }
+      if(!apagada && !pista.textContent){ pista.textContent="sopla más cerca (o toca la vela)"; pista.className="pista pista-chica revela"; }
     }, 9000);
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
     .then(function(stream){
@@ -1045,7 +1047,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 
     // Estrellitas de relleno para que no se adivine la forma
     var fondo="";
-    for(var s=0;s<80;s++){
+    for(var s=0;s<45;s++){
       fondo+='<circle class="fondo" cx="'+(azar()*290).toFixed(1)+'" cy="'+(azar()*270).toFixed(1)+'" r="'+(0.5+azar()*1.1).toFixed(2)+'" style="animation-delay:-'+(azar()*3).toFixed(2)+'s"/>';
     }
     fondo+='<circle class="punto-i" cx="'+pI[0]+'" cy="'+pI[1]+'" r="2.8"/>';
@@ -1096,21 +1098,32 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
         d+=" C"+(p1.x+(p2.x-p0.x)/6).toFixed(1)+" "+(p1.y+(p2.y-p0.y)/6).toFixed(1)+" "+
              (p2.x-(p3.x-p1.x)/6).toFixed(1)+" "+(p2.y-(p3.y-p1.y)/6).toFixed(1)+" "+p2.x+" "+p2.y;
       }
-      var suave=document.createElementNS(NS,"path");
-      suave.setAttribute("d",d); suave.setAttribute("class","trazo-suave");
-      gL.appendChild(suave);
-      var largo=suave.getTotalLength();
-      suave.style.strokeDasharray=largo; suave.style.strokeDashoffset=animar?largo:0;
-      if(animar){ void suave.getBoundingClientRect(); suave.style.transition="stroke-dashoffset 2.4s ease-in-out"; }
-      setTimeout(function(){ svg.classList.add("completa"); suave.style.strokeDashoffset=0; }, animar?300:0);
+      // Dos trazos: uno ancho y transparente (el brillo, sin filtros pesados) y el fino
+      var trazosFinales=["trazo-brillo","trazo-suave"].map(function(cl){
+        var pth=document.createElementNS(NS,"path");
+        pth.setAttribute("d",d); pth.setAttribute("class",cl);
+        gL.appendChild(pth); return pth;
+      });
+      var largo=trazosFinales[1].getTotalLength();
+      trazosFinales.forEach(function(pth){
+        pth.style.strokeDasharray=largo; pth.style.strokeDashoffset=animar?largo:0;
+        if(animar){ void pth.getBoundingClientRect(); pth.style.transition="stroke-dashoffset 1.4s ease-out"; }
+      });
+      setTimeout(function(){
+        svg.classList.add("completa");
+        trazosFinales.forEach(function(pth){ pth.style.strokeDashoffset=0; });
+      }, animar?150:0);
+      // El festejo va después de escribir el te quiero, no al mismo tiempo
       if(animar){
-        var c=centroDe(svg);
-        setTimeout(function(){ confeti(c[0],c[1],160,16); corazones(svg,12); vibrar([60,80,60,80,120]); musica.ding(); }, 500);
+        setTimeout(function(){
+          var c=centroDe(svg);
+          confeti(c[0],c[1],110,15); corazones(svg,8); vibrar([60,80,60,80,120]); musica.ding();
+        }, 1600);
       }
       setTimeout(function(){
         var carta=$("cartaFinal"); carta.hidden=false;
         if(animar) carta.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});
-      }, animar?1800:0);
+      }, animar?2600:0);
     }
 
     function aSvg(e){

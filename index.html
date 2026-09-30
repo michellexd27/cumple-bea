@@ -174,10 +174,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 #constelacion .punto{fill:var(--crema);transition:fill .3s,r .3s}
 #constelacion .punto.unido{fill:var(--pulpa)}
 #constelacion .punto.sig{fill:#FCE38A}
-#constelacion .num{fill:rgba(253,251,245,.62);font-family:var(--maq);font-size:9px;pointer-events:none}
+#constelacion .num{fill:rgba(253,251,245,.62);font-family:var(--maq);font-size:8.5px;pointer-events:none}
 #constelacion .num.unido{fill:rgba(231,239,176,.35)}
 #constelacion .linea{stroke:var(--pulpa);stroke-width:2;stroke-linecap:round;fill:none;animation:traza .3s ease-out both}
-#constelacion.completa .linea{stroke:var(--rosa);filter:drop-shadow(0 0 3px rgba(242,181,198,.9));transition:stroke .6s}
+#constelacion .trazo-suave{fill:none;stroke:var(--rosa);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px rgba(242,181,198,.9))}
+#constelacion .punto-i{fill:var(--crema);opacity:.8}
+#constelacion.completa .punto-i{fill:var(--rosa);opacity:1;filter:drop-shadow(0 0 3px rgba(242,181,198,.9));transition:fill .6s 2s}
+#constelacion.completa .linea{opacity:0;transition:opacity 1.2s .8s}
+#constelacion.completa .punto{opacity:.35;transition:opacity 1s .8s}
 #constelacion.completa .num{opacity:0;transition:opacity .8s}
 #constelacion.completa{animation:latido 1.4s ease-in-out 2}
 .ayuda{background:none;border:1px dashed rgba(231,239,176,.6);color:var(--pulpa);border-radius:999px;padding:4px 10px}
@@ -332,7 +336,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 
     <div class="centro">
       <div class="cielo entra" style="--del:.2s">
-        <svg id="constelacion" viewBox="0 0 300 285" role="img" aria-label="Constelación para unir"></svg>
+        <svg id="constelacion" viewBox="0 0 290 275" role="img" aria-label="Constelación para unir"></svg>
       </div>
       <div class="fila-vales entra" style="--del:.3s"><span class="maq" id="sigEstrella"></span><button class="maq ayuda" id="ayudaEstrellas" type="button" hidden>¿me ayudas?</button></div>
       <div id="cartaFinal" hidden>
@@ -608,7 +612,16 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
       if(CANCION){
         asegurarAudio();
         audio.muted=false;
-        var p=audio.play(); if(p&&p.catch) p.catch(function(){});
+        var p=audio.play();
+        if(p&&p.catch) p.catch(function(){
+          // El teléfono la bloqueó: reintenta, y si no, suena con el próximo toque
+          sonando=false; pintar();
+          setTimeout(function(){
+            if(porMic || !quiere || viva()) return;
+            var p2=audio.play();
+            if(p2&&p2.then) p2.then(function(){ sonando=true; pintar(); },function(){ armar(); });
+          },500);
+        });
       } else {
         if(!ctx && !crear()) return;
         ctx.resume();
@@ -656,7 +669,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
       setTimeout(function(){ if(viva()) quitar(); },300);
     }
     function quitar(){ gestos.forEach(function(g){ document.removeEventListener(g,primerToque,true); }); }
-    gestos.forEach(function(g){ document.addEventListener(g,primerToque,true); });
+    function armar(){ quitar(); gestos.forEach(function(g){ document.addEventListener(g,primerToque,true); }); }
+    armar();
     pintar();
     return {
       // Pausa mientras escucha el micrófono. Si la música aún no ha sonado,
@@ -930,33 +944,29 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
   /* ---------- 4 · une las estrellas ---------- */
   (function(){
     var NS="http://www.w3.org/2000/svg", svg=$("constelacion");
-    // Letras en una cuadrícula de 36×50; "c" = trazo cerrado
-    var L={
-      T:[{p:[[0,0],[36,0]]},{p:[[18,0],[18,50]]}],
-      E:[{p:[[36,0],[0,0],[0,50],[36,50]]},{p:[[0,25],[28,25]]}],
-      Q:[{p:[[18,0],[36,12],[36,38],[18,50],[0,38],[0,12]],c:1},{p:[[25,40],[40,56]]}],
-      U:[{p:[[0,0],[0,40],[18,50],[36,40],[36,0]]}],
-      I:[{p:[[18,0],[18,50]]}],
-      R:[{p:[[0,50],[0,0],[28,0],[36,12],[28,25],[0,25]]},{p:[[14,25],[36,50]]}],
-      O:[{p:[[18,0],[36,12],[36,38],[18,50],[0,38],[0,12]],c:1}]
-    };
-    var FILAS=[{t:"TE",x:77,y:16},{t:"QUI",x:35,y:108},{t:"ERO",x:35,y:200}], ANCHO=62, ALTO=66, SEP=22;
-    var sx=ANCHO/36, sy=ALTO/50;
-    // Aleatorio con semilla fija: el orden sale igual siempre, pero mezclado
+    // «te quiero» en cursiva, de un solo trazo (sin levantar el dedo).
+    // Línea base y=100, altura de la x y=60; la q baja hasta ~142.
+    var CURSIVA=[
+      /* t */ [12,60],[40,58],[30,28],[27,52],[27,78],[30,94],[37,100],
+      /* e */ [48,94],[60,82],[62,70],[56,62],[48,66],[46,80],[52,96],[62,100],[72,95],
+      /* q */ [111,63],[100,56],[90,64],[88,84],[96,99],[107,96],[112,72],[113,112],[111,132],[105,142],[99,135],[106,120],[120,105],[128,100],
+      /* u */ [132,62],[131,88],[137,100],[146,96],[151,62],[150,90],[156,100],
+      /* i */ [164,64],[163,92],[170,100],
+      /* e */ [178,94],[190,82],[192,70],[186,62],[178,66],[176,80],[182,96],[192,100],[202,95],
+      /* r */ [208,62],[216,64],[218,70],[219,92],[226,100],
+      /* o */ [238,60],[228,66],[225,84],[232,99],[243,98],[249,84],[247,68],[242,61],[254,63],[268,57]
+    ];
+    var PUNTO_I=[165,40]; // el puntito de la i: una estrella sin número
+    // Dos renglones más grandes: «te» arriba, «quiero» abajo (mismo trazo)
+    var S=1.5, N_TE=16;
+    function aTe(q){ return [(q[0]-12)*S+100, (q[1]-28)*S+20]; }
+    function aQuiero(q){ return [(q[0]-86)*1.42+10, (q[1]-56)*1.42+140]; }
+    // Aleatorio con semilla fija para las estrellitas de relleno
     var semilla=26;
     function azar(){ semilla|=0; semilla=semilla+0x6D2B79F5|0; var t=Math.imul(semilla^semilla>>>15,1|semilla); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
 
-    var trazos=[];
-    FILAS.forEach(function(f){
-      f.t.split("").forEach(function(ch,k){
-        var ox=f.x+k*(ANCHO+SEP);
-        L[ch].forEach(function(tr){
-          trazos.push({ c:!!tr.c, p:tr.p.map(function(q){ return [ox+q[0]*sx, f.y+q[1]*sy]; }) });
-        });
-      });
-    });
-    for(var i=trazos.length-1;i>0;i--){ var j=Math.floor(azar()*(i+1)), tmp=trazos[i]; trazos[i]=trazos[j]; trazos[j]=tmp; }
-    trazos.forEach(function(tr){ if(azar()<.5) tr.p.reverse(); });
+    var trazos=[{ c:false, p:CURSIVA.map(function(q,k){ return k<N_TE ? aTe(q) : aQuiero(q); }) }];
+    var pI=aQuiero(PUNTO_I);
 
     var puntos=[];
     trazos.forEach(function(tr,ti){
@@ -967,17 +977,18 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 
     // Estrellitas de relleno para que no se adivine la forma
     var fondo="";
-    for(var s=0;s<90;s++){
-      fondo+='<circle class="fondo" cx="'+(azar()*300).toFixed(1)+'" cy="'+(azar()*285).toFixed(1)+'" r="'+(0.5+azar()*1.1).toFixed(2)+'" style="animation-delay:-'+(azar()*3).toFixed(2)+'s"/>';
+    for(var s=0;s<80;s++){
+      fondo+='<circle class="fondo" cx="'+(azar()*290).toFixed(1)+'" cy="'+(azar()*270).toFixed(1)+'" r="'+(0.5+azar()*1.1).toFixed(2)+'" style="animation-delay:-'+(azar()*3).toFixed(2)+'s"/>';
     }
+    fondo+='<circle class="punto-i" cx="'+pI[0]+'" cy="'+pI[1]+'" r="2.8"/>';
     svg.innerHTML='<g>'+fondo+'</g><g id="lineas"></g><g id="puntos"></g>';
     var gL=$("lineas"), gP=$("puntos"), circulos=[], etiquetas=[];
     puntos.forEach(function(pt,n){
       var c=document.createElementNS(NS,"circle");
-      c.setAttribute("cx",pt.x.toFixed(1)); c.setAttribute("cy",pt.y.toFixed(1)); c.setAttribute("r","3.2");
+      c.setAttribute("cx",pt.x.toFixed(1)); c.setAttribute("cy",pt.y.toFixed(1)); c.setAttribute("r","3");
       c.setAttribute("class","punto");
       var t=document.createElementNS(NS,"text");
-      t.setAttribute("x",(pt.x+4.5).toFixed(1)); t.setAttribute("y",(pt.y-4).toFixed(1));
+      t.setAttribute("x",(pt.x+3.5).toFixed(1)); t.setAttribute("y",(pt.y-3.5).toFixed(1));
       t.setAttribute("class","num"); t.textContent=String(n+1);
       gP.appendChild(c); gP.appendChild(t);
       circulos.push(c); etiquetas.push(t);
@@ -1010,7 +1021,20 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
       completa=true; pintarSig();
       $("ayudaEstrellas").hidden=true;
       guardar("bea-estrellas",true);
-      setTimeout(function(){ svg.classList.add("completa"); }, animar?300:0);
+      // Trazo suave (curvas por los mismos puntos) que "escribe" el te quiero
+      var P=puntos, d="M"+P[0].x+" "+P[0].y;
+      for(var k=0;k<P.length-1;k++){
+        var p0=P[k-1]||P[k], p1=P[k], p2=P[k+1], p3=P[k+2]||p2;
+        d+=" C"+(p1.x+(p2.x-p0.x)/6).toFixed(1)+" "+(p1.y+(p2.y-p0.y)/6).toFixed(1)+" "+
+             (p2.x-(p3.x-p1.x)/6).toFixed(1)+" "+(p2.y-(p3.y-p1.y)/6).toFixed(1)+" "+p2.x+" "+p2.y;
+      }
+      var suave=document.createElementNS(NS,"path");
+      suave.setAttribute("d",d); suave.setAttribute("class","trazo-suave");
+      gL.appendChild(suave);
+      var largo=suave.getTotalLength();
+      suave.style.strokeDasharray=largo; suave.style.strokeDashoffset=animar?largo:0;
+      if(animar){ void suave.getBoundingClientRect(); suave.style.transition="stroke-dashoffset 2.4s ease-in-out"; }
+      setTimeout(function(){ svg.classList.add("completa"); suave.style.strokeDashoffset=0; }, animar?300:0);
       if(animar){
         var c=centroDe(svg);
         setTimeout(function(){ confeti(c[0],c[1],160,16); corazones(svg,12); vibrar([60,80,60,80,120]); musica.ding(); }, 500);

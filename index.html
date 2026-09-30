@@ -451,6 +451,13 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
   var guardar = function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
   var leer = function(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } };
   var $ = function(id){ return document.getElementById(id); };
+
+  // Abrir la página con ?reiniciar al final del link la deja como nueva
+  // (lista sin leer, vales sin raspar, estrellas sin unir).
+  if(/[?&]reiniciar/.test(location.search)){
+    ["bea-lista-vistas","bea-vales","bea-estrellas","bea-musica"].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+  }
   function centroDe(el){ var r=el.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; }
   function vibrar(p){ if("vibrate" in navigator){ try{ navigator.vibrate(p); }catch(e){} } }
 
@@ -578,10 +585,59 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
         t0+=n[1]*B; idx=(idx+1)%MEL.length;
       }
     }
+    /* La canción se reproduce con el MISMO motor de audio (AudioContext) que
+       escucha el micrófono. Se enciende con el primer toque y ya no se apaga,
+       así el iPhone no la puede bloquear al soplar la vela. */
+    var buffer=null, crudo=null, cargandoWA=false, decodificando=false, pendientePlay=false;
+    var fuente=null, ganancia=null, inicioT=0, posicion=0;
+    if(CANCION && !YOUTUBE && window.fetch && location.protocol!=="file:"){
+      cargandoWA=true;
+      fetch(CANCION).then(function(r){ if(!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(function(ab){ crudo=ab; decodificar(); })
+        .catch(function(){ cargandoWA=false; });
+    }
+    function usaWA(){ return !!CANCION && !YOUTUBE && (cargandoWA || !!buffer); }
+    function asegurarCtx(){
+      if(!ctx && !crear()) return null;
+      if(ctx.state!=="running"){ try{ ctx.resume(); }catch(e){} }
+      return ctx;
+    }
+    function decodificar(){
+      if(!ctx || !crudo || buffer || decodificando) return;
+      decodificando=true;
+      var ab=crudo; crudo=null;
+      var listo=function(b){
+        if(buffer) return;
+        buffer=b; decodificando=false;
+        if(pendientePlay){ pendientePlay=false; tocarWA(); }
+      };
+      var fallo=function(){ decodificando=false; cargandoWA=false; if(pendientePlay){ pendientePlay=false; sonando=false; play(); } };
+      var pr=ctx.decodeAudioData(ab, listo, fallo);
+      if(pr && pr.then) pr.then(listo, fallo);
+    }
+    function tocarWA(){
+      if(fuente || !buffer) return;
+      asegurarCtx();
+      var fin=Math.min(CANCION_FIN||buffer.duration, buffer.duration);
+      fuente=ctx.createBufferSource();
+      fuente.buffer=buffer; fuente.loop=true; fuente.loopStart=0; fuente.loopEnd=fin;
+      fuente.connect(ganancia);
+      if(posicion>=fin) posicion=0;
+      fuente.start(0, posicion);
+      inicioT=ctx.currentTime-posicion;
+    }
+    function pararWA(){
+      if(!fuente) return;
+      var fin=fuente.loopEnd||buffer.duration;
+      posicion=(ctx.currentTime-inicioT)%fin;
+      try{ fuente.stop(); }catch(e){}
+      fuente.disconnect(); fuente=null;
+    }
     function crear(){
       var AC=window.AudioContext||window.webkitAudioContext;
       if(!AC) return false;
       ctx=new AC();
+      ganancia=ctx.createGain(); ganancia.gain.value=.7; ganancia.connect(ctx.destination);
       master=ctx.createGain(); master.gain.value=.35;
       var eco=ctx.createDelay(); eco.delayTime.value=.3;
       var fb=ctx.createGain(); fb.gain.value=.28;
@@ -629,6 +685,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 
     function viva(){
       if(YOUTUBE) return !!(yt && ytListo && yt.getPlayerState && yt.getPlayerState()===1);
+      if(usaWA()) return !!fuente && ctx && ctx.state==="running";
       return CANCION ? (audio && !audio.paused && !audio.muted) : (ctx && ctx.state==="running");
     }
     function play(){
@@ -636,6 +693,15 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
         mini.classList.remove("oculto");
         if(ytListo) yt.playVideo(); else ytPendiente=true;
         pintar(); return; // «sonando» lo marca el propio reproductor
+      }
+      if(usaWA()){
+        if(!asegurarCtx()) return;
+        if(audio && !audio.paused) audio.pause();
+        if(buffer) tocarWA(); else { pendientePlay=true; decodificar(); }
+        sonando=true; pintar();
+        // Si el teléfono dejó el motor en pausa, suena con el próximo toque
+        setTimeout(function(){ if(ctx.state!=="running"){ sonando=false; pintar(); armar(); } },600);
+        return;
       }
       if(CANCION){
         asegurarAudio();
@@ -651,8 +717,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
           },500);
         });
       } else {
-        if(!ctx && !crear()) return;
-        ctx.resume();
+        if(!asegurarCtx()) return;
         if(!timer){ t0=ctx.currentTime+0.1; timer=setInterval(programar,100); }
       }
       sonando=true; pintar();
@@ -668,7 +733,9 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
     }
     function stop(){
       if(YOUTUBE){ ytPendiente=false; if(ytListo) yt.pauseVideo(); mini.classList.add("oculto"); }
-      if(audio) audio.pause(); if(ctx) ctx.suspend();
+      pararWA(); pendientePlay=false;
+      if(audio) audio.pause();
+      if(timer){ clearInterval(timer); timer=null; } // el motor NO se suspende: lo usa el micrófono
       sonando=false; pintar();
     }
     function pintar(){
@@ -705,26 +772,35 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
     function desbloquear(){
       if(desbloqueado || sonando || YOUTUBE) return;
       desbloqueado=true;
+      // Enciende el motor de audio dentro del toque y "suena" un silencio
+      // cortito: con eso el iPhone lo deja sonar después sin otro toque.
+      if(asegurarCtx()){
+        try{
+          var vacio=ctx.createBuffer(1,1,22050), s=ctx.createBufferSource();
+          s.buffer=vacio; s.connect(ctx.destination); s.start(0);
+        }catch(e){}
+        decodificar();
+      }
+      if(usaWA()) return;
       if(CANCION){
         // Queda sonando EN SILENCIO desde este toque; al apagar la vela solo
         // se le quita el silencio (así el teléfono no la puede bloquear).
         asegurarAudio(); audio.muted=true;
         var p=audio.play();
         if(p&&p.then) p.then(null,function(){ desbloqueado=false; });
-      } else if(ctx || crear()){
-        var r=ctx.resume();
-        if(r&&r.then) r.then(function(){ if(!sonando) ctx.suspend(); });
       }
     }
     armar();
     pintar();
     return {
       desbloquear:desbloquear,
+      contexto:function(){ return asegurarCtx(); },
       // Pausa mientras escucha el micrófono (que la música no "sople")
       silenciar:function(){ porMic=true; desbloquear(); if(sonando) stop(); },
       // Al apagar la vela: ¡que suene!
       festejo:function(){
         porMic=false; quiere=true;
+        if(usaWA()){ posicion=0; play(); return; }
         if(CANCION && audio && !audio.paused && audio.muted){
           audio.currentTime=0; audio.muted=false; sonando=true; pintar(); return;
         }
@@ -742,7 +818,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
   var apagada=false;
   var flame=$("flame"), viento=$("viento"), smoke=$("smoke"), glow=$("glow");
   var cakeWrap=$("cake-wrap"), cake=$("cake"), ribbon=$("ribbon"), mensaje=$("mensajeDeseo");
-  var micStream=null, audioCtx=null, analyser=null, timeData=null, rafMic=null;
+  var micStream=null, audioCtx=null, micFuente=null, analyser=null, timeData=null, rafMic=null;
   var ruido=0, calib=0, progreso=0;
 
   cakeWrap.addEventListener("click", function(){ if(!apagada) apagar(); });
@@ -778,13 +854,14 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
     .then(function(stream){
       micStream=stream;
-      var AC=window.AudioContext||window.webkitAudioContext;
-      audioCtx=new AC();
-      if(audioCtx.state==="suspended") audioCtx.resume();
+      // Mismo motor de audio que la música (encendido con el toque)
+      audioCtx=musica.contexto();
+      if(!audioCtx){ sinMic(); return; }
       analyser=audioCtx.createAnalyser();
       analyser.fftSize=512;
       timeData=new Uint8Array(analyser.fftSize);
-      audioCtx.createMediaStreamSource(stream).connect(analyser);
+      micFuente=audioCtx.createMediaStreamSource(stream);
+      micFuente.connect(analyser);
       ruido=0; calib=0; progreso=0;
       escuchar();
     })
@@ -863,7 +940,8 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 
   function pararMic(){
     if(micStream){ micStream.getTracks().forEach(function(t){t.stop();}); micStream=null; }
-    if(audioCtx){ try{audioCtx.close();}catch(e){} audioCtx=null; }
+    if(micFuente){ try{ micFuente.disconnect(); }catch(e){} micFuente=null; }
+    audioCtx=null; // el motor NO se cierra: con él suena la canción
     analyser=null;
   }
 

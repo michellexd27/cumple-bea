@@ -151,7 +151,28 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 .enfasis{display:inline-block;color:var(--rosa-fuerte);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-decoration:underline wavy;text-underline-offset:3px}
 .vale.revelado .enfasis{animation:tiembla .45s .9s 3 both}
 @keyframes tiembla{0%,100%{transform:none}25%{transform:rotate(-7deg) scale(1.2)}75%{transform:rotate(7deg) scale(1.2)}}
-.instruccion{font-size:clamp(29px,8.4vw,36px);line-height:1.08;color:var(--vino);margin:0}
+.instruccion{font-size:clamp(22px,6vw,26px);line-height:1.12;color:var(--vino);margin:6px 0 0}
+/* señales grandes */
+html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavior:none}
+.senal-toca{display:flex;align-items:center;justify-content:center;gap:4px}
+.mano{font-size:clamp(34px,10vw,44px);line-height:1;display:inline-block}
+.mano-izq{animation:empuja-der .8s ease-in-out infinite}
+.mano-der{animation:empuja-izq .8s ease-in-out infinite}
+.boton.grande{font-size:clamp(28px,8vw,36px);padding:10px 24px;animation:late 1.2s ease-in-out infinite,anillo 1.6s ease-out infinite}
+.senal-sopla{display:flex;align-items:center;justify-content:center;gap:12px}
+.flecha-arriba{width:clamp(28px,8vw,36px);display:block;animation:sube-flecha .7s ease-in-out infinite}
+.flecha-arriba svg{display:block;width:100%;height:auto}
+.sopla-grande{font-family:var(--serif);font-size:clamp(46px,13vw,60px);line-height:1;color:var(--vino);display:inline-block;animation:late .9s ease-in-out infinite}
+.pista-grande{display:inline-block;font-size:clamp(23px,6.4vw,28px);font-weight:700;line-height:1.1;color:var(--vino);background:var(--crema);padding:6px 16px;border-radius:18px;animation:late 1s ease-in-out infinite}
+#cake-wrap.apuntada #cake{animation:aura 1.4s ease-in-out infinite}
+#bajarDeseo{visibility:hidden;opacity:0;display:flex;flex-direction:column;align-items:center;font-size:clamp(24px,6.6vw,28px);font-weight:700;color:var(--vino);transition:opacity .6s}
+#bajarDeseo.lista{visibility:visible;opacity:1}
+#bajarDeseo .flecha-grande{font-size:52px;line-height:1;color:var(--verde)}
+@keyframes empuja-der{0%,100%{transform:translateX(-7px)}50%{transform:translateX(5px)}}
+@keyframes empuja-izq{0%,100%{transform:translateX(7px)}50%{transform:translateX(-5px)}}
+@keyframes anillo{0%{box-shadow:0 5px 0 #2c4420,0 0 0 0 rgba(238,143,174,.75)}100%{box-shadow:0 5px 0 #2c4420,0 0 0 22px rgba(238,143,174,0)}}
+@keyframes sube-flecha{0%,100%{transform:translateY(5px)}50%{transform:translateY(-9px)}}
+@keyframes aura{0%,100%{filter:drop-shadow(0 12px 14px var(--sombra))}50%{filter:drop-shadow(0 0 22px rgba(252,227,138,.95))}}
 .premio .sello{font-family:var(--maq);font-size:10px;letter-spacing:.06em;white-space:nowrap;text-transform:uppercase;color:var(--rosa-fuerte);border:1.5px solid var(--rosa-fuerte);border-radius:4px;padding:2px 6px;margin-top:4px;opacity:0;transform:rotate(-8deg)}
 .vale.revelado .sello{animation:sello .5s .2s both}
 .vale.revelado .premio>*:not(.sello){animation:aparece .5s both}
@@ -272,13 +293,17 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
       </div>
 
       <div id="mensajeDeseo" aria-live="polite">
-        <button class="boton late" id="soplarBtn" type="button">toca aquí ✨</button>
-        <p class="pista" id="pista">hay algo para ti</p>
+        <div class="senal-toca">
+          <span class="mano mano-izq" aria-hidden="true">👉</span>
+          <button class="boton grande" id="soplarBtn" type="button">TOCA AQUÍ</button>
+          <span class="mano mano-der" aria-hidden="true">👈</span>
+        </div>
+        <p class="pista" id="pista">hay algo para ti ✨</p>
         <div class="mic-meter" id="meterWrap" hidden><i id="meterBar"></i></div>
       </div>
     </div>
 
-    <a class="siguiente" href="#lista">sigue bajando <span class="flecha">↓</span></a>
+    <a class="siguiente" id="bajarDeseo" href="#lista"><span class="bajar-texto">¡BAJA! hay más</span><span class="flecha flecha-grande" aria-hidden="true">⬇</span></a>
   </div>
 </section>
 
@@ -522,6 +547,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
   }
 
   /* ---------- música ---------- */
+  var esperandoVela=true; // hasta que se apague: no se puede bajar y la música espera
   var musica=(function(){
     var ctx=null, master=null, timer=null, t0=0, idx=0, sonando=false, audio=null, porMic=false, oculta=false;
     var quiere=leer("bea-musica",true);
@@ -656,13 +682,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
     });
     document.addEventListener("visibilitychange",function(){
       if(document.hidden && sonando){ oculta=true; stop(); }
-      else if(!document.hidden && oculta){ oculta=false; if(!porMic) play(); }
+      else if(!document.hidden && oculta){ oculta=false; if(!porMic && !esperandoVela) play(); }
     });
     // Los navegadores solo dejan sonar audio después de un toque.
     var gestos=["pointerup","click","keydown"];
     function primerToque(e){
       if(e.target.closest && e.target.closest("#btnMusica,#miniYT")) return quitar();
-      if(e.target.closest && e.target.closest("#soplarBtn")) return; // ese toque la guarda para el festejo
+      // Antes de apagar la vela, cualquier toque solo la deja lista (en silencio)
+      if(esperandoVela){ desbloquear(); return; }
       if(!quiere) return quitar();
       if(porMic) return;
       if(!viva()) play();
@@ -670,24 +697,30 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
     }
     function quitar(){ gestos.forEach(function(g){ document.removeEventListener(g,primerToque,true); }); }
     function armar(){ quitar(); gestos.forEach(function(g){ document.addEventListener(g,primerToque,true); }); }
+    // "Desbloquea" el audio en silencio dentro de un toque (en iPhone el
+    // audio necesita un toque) para que luego pueda sonar solo, al soplar.
+    var desbloqueado=false;
+    function desbloquear(){
+      if(desbloqueado || sonando || YOUTUBE) return;
+      desbloqueado=true;
+      if(CANCION){
+        asegurarAudio(); audio.muted=true;
+        var p=audio.play();
+        if(p&&p.then) p.then(function(){ if(!sonando){ audio.pause(); audio.currentTime=0; } audio.muted=false; },
+                             function(){ audio.muted=false; desbloqueado=false; });
+      } else if(ctx || crear()){
+        var r=ctx.resume();
+        if(r&&r.then) r.then(function(){ if(!sonando) ctx.suspend(); });
+      }
+    }
     armar();
     pintar();
     return {
-      // Pausa mientras escucha el micrófono. Si la música aún no ha sonado,
-      // la "desbloquea" en silencio (en iPhone el audio necesita un toque)
-      // para que luego pueda arrancar sola al apagarse la vela.
-      silenciar:function(){
-        porMic=true;
-        if(CANCION && !YOUTUBE && !sonando){
-          asegurarAudio(); audio.muted=true;
-          var p=audio.play();
-          if(p&&p.then) p.then(function(){ if(porMic){ audio.pause(); audio.currentTime=0; } audio.muted=false; },function(){ audio.muted=false; });
-          return;
-        }
-        if(!CANCION && !YOUTUBE && !ctx && crear()) ctx.resume();
-        stop();
-      },
-      retomar:function(){ if(!porMic) return; porMic=false; if(quiere) play(); },
+      desbloquear:desbloquear,
+      // Pausa mientras escucha el micrófono (que la música no "sople")
+      silenciar:function(){ porMic=true; desbloquear(); if(sonando) stop(); },
+      // Al apagar la vela: ¡que suene!
+      festejo:function(){ porMic=false; if(quiere && !viva()) play(); },
       ding:function(){
         if(!ctx || !sonando || CANCION) return;
         var t=ctx.currentTime+0.02;
@@ -716,16 +749,22 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
     musica.silenciar(); // desbloquea el audio y lo guarda para el festejo
     ribbon.textContent="sopla la vela";
     ribbon.style.animation="none"; void ribbon.offsetWidth; ribbon.style.animation="pop .5s both, cinta 3.2s ease-in-out .5s infinite";
+    var FLECHA_ARRIBA='<svg viewBox="0 0 40 50" aria-hidden="true"><path d="M20 3 L37 24 H27 V47 H13 V24 H3 Z" fill="#5B3A48"/></svg>';
     mensaje.innerHTML=
-      '<p class="revela instruccion">cierra los ojos,<br>pide un deseo<br>y sopla el teléfono</p>'+
-      '<p class="pista" id="pista"></p>'+
-      '<div class="mic-meter" id="meterWrap" hidden><i id="meterBar"></i></div>';
+      '<div class="senal-sopla revela">'+
+        '<span class="flecha-arriba">'+FLECHA_ARRIBA+'</span>'+
+        '<span class="sopla-grande">¡SOPLA!</span>'+
+        '<span class="flecha-arriba" style="animation-delay:-.35s">'+FLECHA_ARRIBA+'</span>'+
+      '</div>'+
+      '<p class="revela instruccion" style="animation-delay:.25s">cierra los ojos, pide un deseo<br>y sopla fuerte al teléfono 💨</p>'+
+      '<p class="pista" id="pista"></p>';
+    cakeWrap.classList.add("apuntada");
     var pista=$("pista");
-    var sinMic=function(){ pista.textContent="…o toca la vela para apagarla 👆"; pista.className="pista revela"; musica.retomar(); };
+    var sinMic=function(){ pista.innerHTML='<span class="pista-grande">👆 TOCA LA VELA</span>'; pista.className="pista revela"; };
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ sinMic(); return; }
-    // Si en un rato no se ha apagado, una pista discreta
+    // Si en un rato no se ha apagado, otra señal grande
     setTimeout(function(){
-      if(!apagada && !pista.textContent){ pista.textContent="¿no se apaga? sopla más cerca, o tócala 👆"; pista.className="pista revela"; }
+      if(!apagada && !pista.textContent){ pista.innerHTML='<span class="pista-grande">¿no se apaga? sopla más cerca<br>o 👆 TÓCALA</span>'; pista.className="pista revela"; }
     }, 9000);
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
     .then(function(stream){
@@ -786,9 +825,31 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
       '<p class="revela" style="font-family:var(--serif);font-size:clamp(30px,8vw,38px);margin:0 0 4px;color:var(--verde)">'+MENSAJE_VELA.titulo+'</p>'+
       '<p class="revela" style="font-size:clamp(23px,6vw,27px);line-height:1.25;margin:0;animation-delay:.35s">'+MENSAJE_VELA.texto+'</p>'+
       '<p class="revela" style="font-size:24px;margin:6px 0 0;animation-delay:.7s">'+MENSAJE_VELA.firma+'</p>';
+    cakeWrap.classList.remove("apuntada");
     pararMic();
-    musica.retomar();
+    esperandoVela=false;
+    musica.festejo();
     setTimeout(musica.ding, 300);
+    desbloquearScroll();
+  }
+
+  /* No se puede bajar hasta apagar la vela */
+  var raiz=document.documentElement;
+  function sinTocarScroll(e){ e.preventDefault(); }
+  function sinTeclasScroll(e){ if(["ArrowDown","ArrowUp","PageDown","PageUp","End","Home"," "].indexOf(e.key)>=0 && !(e.target.closest && e.target.closest("button,[tabindex]"))) e.preventDefault(); }
+  if("scrollRestoration" in history) history.scrollRestoration="manual";
+  if(location.hash) history.replaceState(null,"",location.pathname+location.search);
+  window.scrollTo(0,0);
+  raiz.classList.add("bloqueado");
+  document.addEventListener("touchmove",sinTocarScroll,{passive:false});
+  document.addEventListener("wheel",sinTocarScroll,{passive:false});
+  document.addEventListener("keydown",sinTeclasScroll);
+  function desbloquearScroll(){
+    raiz.classList.remove("bloqueado");
+    document.removeEventListener("touchmove",sinTocarScroll,{passive:false});
+    document.removeEventListener("wheel",sinTocarScroll,{passive:false});
+    document.removeEventListener("keydown",sinTeclasScroll);
+    setTimeout(function(){ $("bajarDeseo").classList.add("lista"); }, 1400);
   }
 
   function pararMic(){

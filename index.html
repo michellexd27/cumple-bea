@@ -110,8 +110,51 @@ button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--verde);out
 .titulo{font-family:var(--serif);font-weight:400;font-size:clamp(36px,10vw,48px);line-height:1.02;margin:4px 0 0;text-wrap:balance}
 .subraya{background:linear-gradient(var(--rosa),var(--rosa)) no-repeat 0 90%/0% 38%;transition:background-size .9s .5s ease-out}
 .visible .subraya{background-size:100% 38%}
-.bailarin{position:absolute;top:-8px;right:-16px;width:min(56vw,220px);height:auto;pointer-events:none;z-index:0}
-#lista .antetitulo,#lista .titulo{position:relative;z-index:1;max-width:64%}
+/* pasarela del aguacate */
+.pasarela{position:relative;height:176px;margin:-8px 0 6px;--w:200px;pointer-events:none}
+.pasarela::after{content:"";position:absolute;left:-6px;right:-6px;bottom:4px;height:9px;border-radius:6px;background:repeating-linear-gradient(90deg,var(--rosa-fuerte) 0 14px,var(--rosa) 14px 28px);box-shadow:0 3px 6px var(--sombra)}
+.desfilador{position:absolute;left:0;bottom:10px;width:64px;height:121px;perspective:500px;z-index:1;animation:desfile-x 18s linear infinite}
+.giro{width:100%;height:100%;transform-origin:50% 100%;animation:desfile-giro 18s linear infinite}
+.rebote{width:100%;height:100%;transform-origin:50% 100%;animation:paso .5s ease-in-out infinite}
+.rebote img{display:block;width:100%;height:100%}
+.sombra-piso{position:absolute;left:6px;right:6px;bottom:-5px;height:9px;border-radius:50%;background:rgba(62,90,42,.28);animation:desfile-sombra 18s linear infinite}
+.pasarela:not(.en-pantalla) *{animation-play-state:paused}
+@keyframes paso{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-4px) rotate(4deg)}}
+@keyframes desfile-x{
+  0%{transform:translateX(0)}
+  18%,23%{transform:translateX(var(--w))}
+  41%,49%{transform:translateX(0)}
+  58%,70%{transform:translateX(calc(var(--w) * .5))}
+  80%,86%{transform:translateX(var(--w))}
+  100%{transform:translateX(0)}
+}
+@keyframes desfile-giro{
+  0%,18%{transform:translateY(0) rotate(0) rotateY(0) scale(1,1)}
+  21.5%,41%{transform:translateY(0) rotate(0) rotateY(360deg) scale(1,1)}
+  42.3%{transform:translateY(-26px) rotate(0) rotateY(360deg) scale(.95,1.06)}
+  43.6%{transform:translateY(0) rotate(0) rotateY(360deg) scale(1.14,.86)}
+  45%{transform:translateY(-26px) rotate(0) rotateY(360deg) scale(.95,1.06)}
+  46.3%{transform:translateY(0) rotate(0) rotateY(360deg) scale(1.14,.86)}
+  47.7%{transform:translateY(-30px) rotate(-8deg) rotateY(360deg) scale(.95,1.06)}
+  49%,58%{transform:translateY(0) rotate(0) rotateY(360deg) scale(1,1)}
+  59.5%{transform:translateY(0) rotate(-14deg) rotateY(360deg) scale(1,1)}
+  61%{transform:translateY(0) rotate(13deg) rotateY(360deg) scale(1,1)}
+  62.5%{transform:translateY(0) rotate(-10deg) rotateY(360deg) scale(1,1)}
+  64%{transform:translateY(0) rotate(8deg) rotateY(360deg) scale(1,1)}
+  65.5%{transform:translateY(3px) rotate(32deg) rotateY(360deg) scale(1,1)}
+  67.5%{transform:translateY(-6px) rotate(-10deg) rotateY(360deg) scale(1,1)}
+  70%,80%{transform:translateY(0) rotate(0) rotateY(360deg) scale(1,1)}
+  81%{transform:translateY(0) rotate(0) rotateY(360deg) scale(1.12,.88)}
+  82.5%{transform:translateY(-38px) rotate(0) rotateY(540deg) scale(.95,1.06)}
+  84%{transform:translateY(-38px) rotate(0) rotateY(720deg) scale(1,1)}
+  85.2%{transform:translateY(0) rotate(0) rotateY(720deg) scale(1.14,.86)}
+  86%,100%{transform:translateY(0) rotate(0) rotateY(720deg) scale(1,1)}
+}
+@keyframes desfile-sombra{
+  0%,41.5%,43.6%,44.3%,46.3%,47%,49%,81.5%,85.2%,100%{transform:scale(1);opacity:1}
+  42.3%,45%,47.7%{transform:scale(.6);opacity:.5}
+  82.5%,84%{transform:scale(.5);opacity:.4}
+}
 #lista .centro{gap:16px;padding:14px 0 4px}
 .escena{perspective:900px}
 #tarjeta{background:#fff;border:1px solid #E3DECF;border-radius:4px;padding:28px 22px 22px;position:relative;min-height:clamp(200px,32svh,300px);display:flex;flex-direction:column;justify-content:center;transform:rotate(-1.2deg);box-shadow:0 8px 16px var(--sombra);cursor:pointer}
@@ -226,12 +269,6 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 #btnMusica.on i:nth-child(2){animation-delay:-.3s}
 #btnMusica.on i:nth-child(3){animation-delay:-.6s}
 #btnMusica.on i:nth-child(4){animation-delay:-.15s}
-#miniYT{position:fixed;right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:41;width:216px;background:var(--crema);border-radius:14px;padding:6px 8px 8px;box-shadow:0 6px 0 #d9d2bf,0 10px 22px var(--sombra);transform-origin:100% 100%;transition:transform .35s cubic-bezier(.2,.8,.3,1.2),opacity .25s}
-#miniYT.oculto{transform:scale(.2);opacity:0;pointer-events:none}
-.mini-cabeza{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:19px;font-weight:600;color:var(--verde);padding:0 2px 5px}
-.mini-cabeza span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mini-cabeza button{border:none;background:var(--verde);color:var(--crema);width:26px;height:26px;border-radius:50%;font-family:var(--maq);font-size:16px;line-height:1;flex:none;padding:0}
-#miniYT iframe,#ytPlayer{display:block;width:200px;height:113px;border:0;border-radius:8px;background:#000}
 @keyframes eq{0%,100%{height:6px}50%{height:20px}}
 
 @media (prefers-reduced-motion:reduce){
@@ -245,11 +282,6 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 
 <canvas id="confeti" aria-hidden="true"></canvas>
 <button id="btnMusica" type="button" aria-pressed="false" aria-label="Música de fondo"><i></i><i></i><i></i><i></i></button>
-<div id="miniYT" class="oculto" hidden>
-  <div class="mini-cabeza"><span id="miniTitulo">♪</span><button type="button" id="miniCerrar" aria-label="Pausar y cerrar el reproductor">–</button></div>
-  <div id="ytPlayer"></div>
-</div>
-
 <!-- 1 · SOPLA LA VELA -->
 <section class="pagina" id="deseo">
   <div class="flotantes" data-n="12" data-tipos="globo,aguacate,destello,corazon"></div>
@@ -315,7 +347,13 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 <section class="pagina" id="lista">
   <div class="flotantes" data-n="7" data-tipos="corazon,aguacate,corazon"></div>
   <div class="contenido" style="padding-left:26px">
-    <img class="bailarin" src="aguacate-cumple.webp?v=2" alt="" aria-hidden="true" width="420" height="329" decoding="async">
+    <!-- El aguacate desfila con su cartel por la pasarela -->
+    <div class="pasarela" id="pasarela" aria-hidden="true">
+      <div class="desfilador">
+        <span class="sombra-piso"></span>
+        <div class="giro"><div class="rebote"><img src="aguacate-desfile.webp" width="138" height="260" alt="" decoding="async"></div></div>
+      </div>
+    </div>
     <p class="antetitulo entra">(la lista es más larga, pero no cupo)</p>
     <h1 class="titulo entra" style="--del:.1s">Cosas de Bea que <span class="subraya">quiero</span></h1>
 
@@ -389,16 +427,8 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
      CONFIGURACIÓN — cambia solo esto
      ============================================================ */
 
-  // Canción de fondo desde YouTube: pega aquí el código del video
-  // (lo que va después de "watch?v=" en el link). Se ve en un mini
-  // reproductor flotante. Solo funciona con la página publicada en
-  // internet; si YouTube falla, suena la cajita musical de respaldo.
-  var YOUTUBE = "";
-  var TITULO_CANCION = "Yo soy tu amigo fiel";
-
-  // Alternativa sin YouTube: deja YOUTUBE en "" y pon un .mp3 junto a
-  // este archivo, ej. "cancion.mp3". Si ambos están en "", suena la
-  // cajita musical de «Cumpleaños feliz» que ya viene incluida.
+  // Canción de fondo: un .mp3 junto a este archivo. Si lo dejas en "",
+  // suena la cajita musical de «Cumpleaños feliz» que ya viene incluida.
   var CANCION = "cancion.mp3";
   var CANCION_FIN = 120; // segundos: al llegar aquí vuelve a empezar (0 = completa)
 
@@ -593,13 +623,13 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
        así el iPhone no la puede bloquear al soplar la vela. */
     var buffer=null, crudo=null, cargandoWA=false, decodificando=false, pendientePlay=false;
     var fuente=null, ganancia=null, inicioT=0, posicion=0;
-    if(CANCION && !YOUTUBE && window.fetch && location.protocol!=="file:"){
+    if(CANCION && window.fetch && location.protocol!=="file:"){
       cargandoWA=true;
       fetch(CANCION).then(function(r){ if(!r.ok) throw 0; return r.arrayBuffer(); })
         .then(function(ab){ crudo=ab; decodificar(); })
         .catch(function(){ cargandoWA=false; });
     }
-    function usaWA(){ return !!CANCION && !YOUTUBE && (cargandoWA || !!buffer); }
+    function usaWA(){ return !!CANCION && (cargandoWA || !!buffer); }
     function asegurarCtx(){
       if(!ctx && !crear()) return null;
       if(ctx.state!=="running"){ try{ ctx.resume(); }catch(e){} }
@@ -649,54 +679,11 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
       eco.connect(fb); fb.connect(eco); eco.connect(mezcla); mezcla.connect(ctx.destination);
       return true;
     }
-    /* YouTube: mini reproductor visible mientras suena (reglas de YouTube) */
-    var mini=$("miniYT"), yt=null, ytListo=false, ytPendiente=false;
-    function caerACaja(){
-      if(!YOUTUBE) return;
-      var seguir=sonando||ytPendiente||!mini.classList.contains("oculto");
-      YOUTUBE=""; ytPendiente=false; ytListo=false; sonando=false;
-      try{ if(yt) yt.destroy(); }catch(e){}
-      yt=null; mini.classList.add("oculto"); mini.hidden=true;
-      pintar();
-      if(seguir && quiere && !porMic) play();
-    }
-    if(YOUTUBE){
-      mini.hidden=false;
-      $("miniTitulo").textContent="♪ "+(TITULO_CANCION||"");
-      window.onYouTubeIframeAPIReady=function(){
-        yt=new YT.Player("ytPlayer",{
-          width:200, height:113, videoId:YOUTUBE,
-          playerVars:{ playsinline:1, rel:0, loop:1, playlist:YOUTUBE },
-          events:{
-            onReady:function(){ ytListo=true; if(ytPendiente){ ytPendiente=false; yt.playVideo(); } },
-            onStateChange:function(e){
-              if(e.data===1){ sonando=true; pintar(); }
-              else if(e.data===2){ sonando=false; pintar(); }
-              else if(e.data===0){ yt.seekTo(0); yt.playVideo(); }
-            },
-            onError:caerACaja
-          }
-        });
-      };
-      var tag=document.createElement("script");
-      tag.src="https://www.youtube.com/iframe_api"; tag.async=true; tag.onerror=caerACaja;
-      document.head.appendChild(tag);
-      $("miniCerrar").addEventListener("click",function(){
-        porMic=false; quiere=false; guardar("bea-musica",quiere); stop();
-      });
-    }
-
     function viva(){
-      if(YOUTUBE) return !!(yt && ytListo && yt.getPlayerState && yt.getPlayerState()===1);
       if(usaWA()) return !!fuente && ctx && ctx.state==="running";
       return CANCION ? (audio && !audio.paused && !audio.muted) : (ctx && ctx.state==="running");
     }
     function play(){
-      if(YOUTUBE){
-        mini.classList.remove("oculto");
-        if(ytListo) yt.playVideo(); else ytPendiente=true;
-        pintar(); return; // «sonando» lo marca el propio reproductor
-      }
       if(usaWA()){
         if(!asegurarCtx()) return;
         if(audio && !audio.paused) audio.pause();
@@ -735,14 +722,12 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
       });
     }
     function stop(){
-      if(YOUTUBE){ ytPendiente=false; if(ytListo) yt.pauseVideo(); mini.classList.add("oculto"); }
       pararWA(); pendientePlay=false;
       if(audio) audio.pause();
       if(timer){ clearInterval(timer); timer=null; } // el motor NO se suspende: lo usa el micrófono
       sonando=false; pintar();
     }
     function pintar(){
-      btn.hidden=!!YOUTUBE && !mini.classList.contains("oculto");
       btn.classList.toggle("on",sonando);
       btn.setAttribute("aria-pressed",String(sonando));
       btn.setAttribute("aria-label",sonando?"Pausar la música":"Poner la música");
@@ -759,7 +744,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
     // Los navegadores solo dejan sonar audio después de un toque.
     var gestos=["pointerup","click","keydown"];
     function primerToque(e){
-      if(e.target.closest && e.target.closest("#btnMusica,#miniYT")) return quitar();
+      if(e.target.closest && e.target.closest("#btnMusica")) return quitar();
       // Antes de apagar la vela, cualquier toque solo la deja lista (en silencio)
       if(esperandoVela){ desbloquear(); return; }
       if(!quiere) return quitar();
@@ -773,7 +758,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
     // audio necesita un toque) para que luego pueda sonar solo, al soplar.
     var desbloqueado=false;
     function desbloquear(){
-      if(desbloqueado || sonando || YOUTUBE) return;
+      if(desbloqueado || sonando) return;
       desbloqueado=true;
       // Enciende el motor de audio dentro del toque y "suena" un silencio
       // cortito: con eso el iPhone lo deja sonar después sin otro toque.
@@ -947,6 +932,15 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
     audioCtx=null; // el motor NO se cierra: con él suena la canción
     analyser=null;
   }
+
+  /* ---------- pasarela del aguacate ---------- */
+  var pasarela=$("pasarela");
+  function anchoPasarela(){ pasarela.style.setProperty("--w", Math.max(0, pasarela.clientWidth-64)+"px"); }
+  anchoPasarela();
+  window.addEventListener("resize", anchoPasarela);
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(function(es){ pasarela.classList.toggle("en-pantalla", es[0].isIntersecting); }).observe(pasarela);
+  } else pasarela.classList.add("en-pantalla");
 
   /* ---------- 2 · lista ---------- */
   var vistas=leer('bea-lista-vistas', []).filter(function(i){ return i<LISTA.length; });

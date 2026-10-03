@@ -215,6 +215,15 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
 #cartaFinal b{font-family:var(--serif);font-weight:400;color:var(--rosa-fuerte);font-size:1.15em}
 #cartaFinal .firma{text-align:right;margin:4px 0 0}
 #estrellas .pie{color:var(--pulpa)}
+#cartaFamilia{margin-top:14px;background:var(--crema);color:var(--verde-tinta);border-radius:4px;padding:16px 16px 18px;box-shadow:0 10px 22px rgba(0,0,0,.3);transform:rotate(.8deg);animation:aparece .8s both}
+.familia{display:flex;gap:14px;align-items:center}
+.foto-marco{position:relative;flex:0 0 42%;min-width:108px;max-width:150px;padding:7px;border-radius:12px;background:linear-gradient(135deg,var(--rosa) 0%,var(--rosa-fuerte) 28%,var(--pulpa-borde) 60%,var(--menta) 100%);box-shadow:0 5px 12px var(--sombra);transform:rotate(-2.5deg)}
+.foto-marco img{display:block;width:100%;height:auto;aspect-ratio:720/962;object-fit:cover;border-radius:7px;border:3px solid var(--crema);background:var(--menta)}
+.foto-marco .avo-esq{position:absolute;width:28px;height:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+.foto-marco .avo-esq.e1{top:-13px;left:-11px;transform:rotate(-20deg)}
+.foto-marco .avo-esq.e2{bottom:-13px;right:-9px;transform:rotate(16deg)}
+.familia .texto-fam{flex:1;min-width:0;font-size:clamp(20px,5.6vw,24px);line-height:1.22}
+.familia .firma-fam{display:block;margin-top:8px;color:var(--rosa-fuerte);font-weight:700}
 @keyframes brilla-cielo{0%,100%{opacity:.25}50%{opacity:.8}}
 @keyframes traza{from{stroke-dashoffset:var(--l)}to{stroke-dashoffset:0}}
 @keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
@@ -365,6 +374,19 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
         <p>Que hayas pasado un lindo cumpleaños y que los que faltan sean todavía mejores.</p>
         <p class="firma">— Mich</p>
       </div>
+      <div id="cartaFamilia" hidden>
+        <div class="familia">
+          <div class="foto-marco">
+            <svg class="avo-esq e1" viewBox="0 0 40 50" aria-hidden="true"><path d="M20 2C11 2 6 16 4 28 2 40 10 48 20 48s18-8 16-20C34 16 29 2 20 2z" fill="#3E5A2A"/><path d="M20 7C13 7 10 18 8.5 28 7 37 12 44 20 44s13-7 11.5-16C30 18 27 7 20 7z" fill="#E7EFB0"/><circle cx="20" cy="31" r="7" fill="#8B5A3C"/><circle cx="18" cy="29" r="2.2" fill="#A8744F"/></svg>
+            <img src="foto-familia.jpg" alt="Foto de la familia de Bea" width="720" height="962" loading="lazy" decoding="async">
+            <svg class="avo-esq e2" viewBox="0 0 40 50" aria-hidden="true"><path d="M20 2C11 2 6 16 4 28 2 40 10 48 20 48s18-8 16-20C34 16 29 2 20 2z" fill="#3E5A2A"/><path d="M20 7C13 7 10 18 8.5 28 7 37 12 44 20 44s13-7 11.5-16C30 18 27 7 20 7z" fill="#E7EFB0"/><circle cx="20" cy="31" r="7" fill="#8B5A3C"/><circle cx="18" cy="29" r="2.2" fill="#A8744F"/></svg>
+          </div>
+          <div class="texto-fam">
+            No existe una mejor compañera ni muchas amigas tan buenas como tú. Te queremos mucho.
+            <span class="firma-fam">Att: tu familia 🥑❤️</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="pie maq"><span>Hecho con más amor que manos</span><span>Precio: 1 abrazo</span></div>
@@ -387,7 +409,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
   // Mensaje al apagar la vela
   var MENSAJE_VELA = {
     titulo: "Deseo pedido.",
-    texto: "Yo te deseo muchos cumpleaños bonitos, llenos de cosas lindas como tú 😊",
+    texto: "Yo te deseo muchos cumpleaños bonitos, llenos de cosas lindas y rodeada de gente que te quiera siempre ❤️",
     firma: "— Mich"
   };
 
@@ -1140,6 +1162,7 @@ html.bloqueado,html.bloqueado body{overflow:hidden;height:100%;overscroll-behavi
       }
       setTimeout(function(){
         var carta=$("cartaFinal"); carta.hidden=false;
+        var fam=$("cartaFamilia"); if(fam) fam.hidden=false;
         if(animar) carta.scrollIntoView({behavior:reduce?"auto":"smooth",block:"center"});
       }, animar?2600:0);
     }
